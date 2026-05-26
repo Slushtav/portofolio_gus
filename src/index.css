@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap');
+
+@theme {
+  --font-press-start: "Press Start 2P", system-ui, sans-serif;
+  --font-vt323: "VT323", monospace;
+  --font-silkscreen: "Silkscreen", sans-serif;
+
+  --color-retro-black: #0d0c1d;
+  --color-retro-dark: #161530;
+  --color-retro-blue: #3d34a5;
+  --color-retro-purple: #772b93;
+  --color-retro-magenta: #c0237c;
+  --color-retro-pink: #f43f80;
+  --color-retro-yellow: #f8c53c;
+  --color-retro-lime: #40f83c;
+  --color-retro-cyan: #3cf8ec;
+  --color-retro-white: #f4f4f9;
+}
+
+@layer utilities {
+  /* CRT Monitor curves and flickers styling */
+  .crt-flicker {
+    animation: crt-glow 0.15s infinite alternate;
+  }
+
+  .pixel-shadow {
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+  }
+
+  .pixel-shadow-pink {
+    box-shadow: 4px 4px 0px 0px #f43f80;
+  }
+
+  .pixel-shadow-cyan {
+    box-shadow: 4px 4px 0px 0px #3cf8ec;
+  }
+
+  /* Micro animation bounce keyframe loops */
+  @keyframes crt-glow {
+    0% {
+      opacity: 0.99;
+    }
+    100% {
+      opacity: 1.0;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-8px) rotate(1deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  .animate-ping-once {
+    animation: ping-once 0.8s cubic-bezier(0, 0, 0.2, 1) 1;
+  }
+  
+  @keyframes ping-once {
+    0% {
+      transform: scale(1) translate(-50%, 0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.4) translate(-50%, -20%);
+      opacity: 0;
+    }
+  }
+}
+
+/* Custom horizontal scrollbar for retro menus */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0c1d;
+  border-left: 2px solid #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #3d34a5;
+  border: 2px solid #000;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #772b93;
+}
+

@@ -1,0 +1,6 @@
+{
+  "name": "Retro 8-Bit Pixel Portfolio",
+  "description": "An interactive 8-bit retro gaming portfolio featuring floating bubble project nodes, smooth custom transitions, and a responsive bottle flip mini-game with local highscore leaderboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
