@@ -27,6 +27,7 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
   
   // Dragging states
   const draggingId = useRef<string | null>(null);
+  const hasDragged = useRef<boolean>(false);
   const mousePos = useRef({ x: 0, y: 0 });
 
   // Initialize bubbles with random placement in safe zones
@@ -35,17 +36,28 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
     const width = containerRef.current.clientWidth || 800;
     const height = containerRef.current.clientHeight || 500;
 
+    // Mobile scalability: shrink bubble radiuses to fit smaller screen sizes
+    let scale = 1.0;
+    if (width < 450) {
+      scale = 0.6;
+    } else if (width < 640) {
+      scale = 0.75;
+    } else if (width < 1024) {
+      scale = 0.9;
+    }
+
     const items = INITIAL_PROJECT_BUBBLES.map((pb, idx) => {
+      const r = Math.round(pb.radius * scale);
       // safe spawn coordinates avoiding overlaps or sticking near screen edge
-      const r = pb.radius;
       const col = idx % 4;
       const row = Math.floor(idx / 4);
       
-      const spawnX = r + col * ((width - r * 2.5) / 3) + Math.random() * 20;
-      const spawnY = r + row * ((height - r * 2.5) / 2) + Math.random() * 20;
+      const spawnX = r + col * ((width - r * 2.5) / 4) + Math.random() * 20;
+      const spawnY = r + row * ((height - r * 2.5) / 3) + Math.random() * 20;
 
       return {
         ...pb,
+        radius: r,
         x: Math.min(Math.max(spawnX, r + 10), width - r - 10),
         y: Math.min(Math.max(spawnY, r + 10), height - r - 10),
         vx: (Math.random() - 0.5) * 1.5,
@@ -212,6 +224,7 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     draggingId.current = id;
+    hasDragged.current = false;
     mousePos.current = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
@@ -219,13 +232,38 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
     sfx.playSelect();
   };
 
+  const handleTouchStart = (id: string, e: React.TouchEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    draggingId.current = id;
+    hasDragged.current = false;
+    mousePos.current = {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    };
+    sfx.playSelect();
+  };
+
   // Handle Drag Moving
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!draggingId.current || !containerRef.current) return;
+    hasDragged.current = true;
     const rect = containerRef.current.getBoundingClientRect();
     mousePos.current = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
+    };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!draggingId.current || !containerRef.current) return;
+    hasDragged.current = true;
+    const rect = containerRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    mousePos.current = {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
     };
   };
 
@@ -241,19 +279,23 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
           if (b.id === tossedId) {
             return {
               ...b,
-              vx: (Math.random() - 0.5) * 4,
-              vy: (Math.random() - 0.5) * 4,
+              vx: (Math.random() - 0.5) * 5,
+              vy: (Math.random() - 0.5) * 5,
             };
           }
           return b;
         })
       );
     }
+    // We let hasDragged reset slightly later or directly inside click handler to survive touch tap sequences
+    setTimeout(() => {
+      hasDragged.current = false;
+    }, 20);
   };
 
   // Launch bubble click or popping transition
   const handleBubbleClick = (bubble: ProjectBubble) => {
-    if (draggingId.current) return; // ignore click on drop
+    if (hasDragged.current || draggingId.current) return; // ignore click on drop
     sfx.playPop();
     setSelectedBubble(bubble);
     setActiveTab('details');
@@ -398,7 +440,10 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
       <div 
         ref={containerRef}
         onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
         onMouseUp={handleMouseUp}
+        onTouchEnd={handleMouseUp}
+        onTouchCancel={handleMouseUp}
         onMouseLeave={handleMouseUp}
         className="flex-1 min-h-[460px] md:min-h-[580px] bg-[#090915] relative overflow-hidden p-4 select-none cursor-crosshair border-b-4 border-black"
         style={{
@@ -458,6 +503,7 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
             <div
               key={b.id}
               onMouseDown={(e) => handleMouseDown(b.id, e)}
+              onTouchStart={(e) => handleTouchStart(b.id, e)}
               onClick={() => handleBubbleClick(b)}
               className="absolute cursor-grab active:cursor-grabbing select-none group z-20"
               style={{
@@ -540,9 +586,9 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
               <Zap className="w-3 h-3 text-yellow-300 animate-pulse" /> CONTROL ADVICE:
             </p>
             <ul className="list-disc pl-3 text-[12px] opacity-90 space-y-0.5">
-              <li>Drag & toss bubbles with your mouse.</li>
-              <li>Click a bubble box to load system specs.</li>
-              <li>Hover bubbles & press <strong>[X]</strong> to pop elements!</li>
+              <li>Drag & toss bubbles with mouse or touch.</li>
+              <li>Click or tap a bubble to load info.</li>
+              <li>Hover & press <strong>[X]</strong> or tap pop option.</li>
             </ul>
           </div>
         </div>
@@ -776,7 +822,7 @@ export default function BubbleWorkspace({ isMuted, setIsMuted }: BubbleWorkspace
                         {/* Profile specific layout items if selected profile */}
                         {selectedBubble.id === 'profile' && (
                           <div className="bg-slate-900/60 p-4 border-2 border-black rounded space-y-3 font-vt323">
-                            <h4 className="text-[9px] text-retro-cyan font-press-start">GUSTAV ADNAN STAT CHEF:</h4>
+                            <h4 className="text-[9px] text-retro-cyan font-press-start">GUSTAV ANANDA STAT CHEF:</h4>
                             <p className="text-slate-200 text-md leading-relaxed">
                               I craft scalable backends, highly interactive web frontends, and modular game mechanics. I specialize in React, Sockets, and custom WebGL/Node utilities. Solving bug tasks is like entering combat in classic role-playing dungeons—I take high pride in resolving complex runtime issues with elegance and robust defensive patterns.
                             </p>
