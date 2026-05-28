@@ -107,7 +107,7 @@ export default function App() {
       <footer className="mt-8 mb-4 text-center space-y-2 select-none z-10 font-vt323">
         <p className="text-slate-400 text-lg tracking-wider flex items-center justify-center gap-1.5">
           <span>DESIGNED EXCLUSIVELY FOR</span>
-          <strong className="text-retro-cyan font-bold font-press-start text-[9px]">GUSTAV ADNAN</strong>
+          <strong className="text-retro-cyan font-bold font-press-start text-[9px]">GUSTAV ANANDA</strong>
           <span>© 2026</span>
         </p>
         <p className="text-slate-600 text-sm flex items-center justify-center gap-1">
